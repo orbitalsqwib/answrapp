@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>378962196481-35fgqsgd1s1604ibqiicbt9g6uue81jm.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.378962196481-35fgqsgd1s1604ibqiicbt9g6uue81jm</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAAzojJe3B3M0pNU4_P8fc7uozFu665HJQ</string>
+	<key>GCM_SENDER_ID</key>
+	<string>378962196481</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>orbitalsqwib.developer.ANSWR</string>
+	<key>PROJECT_ID</key>
+	<string>kasei-bb0e0</string>
+	<key>STORAGE_BUCKET</key>
+	<string>kasei-bb0e0.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:378962196481:ios:44e215ea2b7fc2d485e800</string>
+	<key>DATABASE_URL</key>
+	<string>https://kasei-bb0e0.firebaseio.com</string>
+</dict>
+</plist>
