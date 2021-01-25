@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Jn9-lS-vKy">
+    <device id="retina6_0" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--LandingViewController-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController title="LandingViewController" id="BYZ-38-t0r" customClass="LandingViewController" customModule="ANSWR" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="390" height="844"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" allowsSelection="NO" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="wjp-Pk-wiW">
+                                <rect key="frame" x="0.0" y="0.0" width="390" height="844"/>
+                                <sections/>
+                            </tableView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="wjp-Pk-wiW" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="4Hm-xe-iZY"/>
+                            <constraint firstAttribute="bottom" secondItem="wjp-Pk-wiW" secondAttribute="bottom" id="9yE-EV-KBG"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="wjp-Pk-wiW" secondAttribute="trailing" id="D0G-f9-RIG"/>
+                            <constraint firstItem="wjp-Pk-wiW" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="NqZ-qe-WsH"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Tasksheet" largeTitleDisplayMode="always" id="Ylw-rs-V7y">
+                        <barButtonItem key="rightBarButtonItem" title="Item" id="Gpx-Xe-PaD">
+                            <imageReference key="image" image="person.crop.circle" catalog="system" symbolScale="large"/>
+                            <connections>
+                                <action selector="clickedProfileBtn:" destination="BYZ-38-t0r" id="4s7-Ny-cLw"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="requestTableView" destination="wjp-Pk-wiW" id="Npi-jc-6fp"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="712.30769230769226" y="66.824644549763036"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="Pyd-eU-o4X">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Jn9-lS-vKy" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="ssY-5r-rdA">
+                        <rect key="frame" x="0.0" y="44" width="390" height="104.33333333333334"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <textAttributes key="titleTextAttributes">
+                            <fontDescription key="fontDescription" name="AvenirNext-Medium" family="Avenir Next" pointSize="24"/>
+                        </textAttributes>
+                        <textAttributes key="largeTitleTextAttributes">
+                            <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="44"/>
+                        </textAttributes>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="5wz-Of-4O6"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="8y0-FB-a1b" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-39" y="67"/>
+        </scene>
+    </scenes>
+    <color key="tintColor" name="Tint"/>
+    <resources>
+        <image name="person.crop.circle" catalog="system" width="128" height="121"/>
+        <namedColor name="Tint">
+            <color red="0.035000000149011612" green="0.51800000667572021" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

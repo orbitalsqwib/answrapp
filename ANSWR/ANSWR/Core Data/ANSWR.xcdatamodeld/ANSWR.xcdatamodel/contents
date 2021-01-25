@@ -1,4 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
-    <elements/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20C69" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="CDRequest" representedClassName="CDRequest" syncable="YES" codeGenerationType="class">
+        <attribute name="dateCreated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="delSlotStart" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="isNew" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="senderID" optional="YES" attributeType="String"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <relationship name="items" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDRequestItem" inverseName="request" inverseEntity="CDRequestItem"/>
+        <relationship name="requestZone" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDZoneRequests" inverseName="requests" inverseEntity="CDZoneRequests"/>
+    </entity>
+    <entity name="CDRequestItem" representedClassName="CDRequestItem" syncable="YES" codeGenerationType="class">
+        <attribute name="bgCol" attributeType="String"/>
+        <attribute name="icon" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="qty" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="qtyLimit" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="qtyRemaining" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="request" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDRequest" inverseName="items" inverseEntity="CDRequest"/>
+    </entity>
+    <entity name="CDZoneRequests" representedClassName="CDZoneRequests" syncable="YES" codeGenerationType="class">
+        <attribute name="zoneid" optional="YES" attributeType="String"/>
+        <relationship name="requests" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDRequest" inverseName="requestZone" inverseEntity="CDRequest"/>
+    </entity>
+    <elements>
+        <element name="CDRequest" positionX="-63" positionY="-18" width="128" height="149"/>
+        <element name="CDRequestItem" positionX="-54" positionY="-9" width="128" height="149"/>
+        <element name="CDZoneRequests" positionX="-45" positionY="72" width="128" height="59"/>
+    </elements>
 </model>
