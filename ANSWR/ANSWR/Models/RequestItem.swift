@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseDatabase
 
-class RequestItem: Codable {
+class RequestItem: Codable, Equatable {
     var id: String
     var name: String
     var icon: String
@@ -16,6 +16,7 @@ class RequestItem: Codable {
     var qtyLimit: Int?
     var qtyRemaining: Int?
     var bgCol: String
+    var checked: Bool?
     
     init(id: String, name: String, icon: String, qty: Int, bgCol: String) {
         self.id = id
@@ -24,6 +25,11 @@ class RequestItem: Codable {
         self.qty = qty
         self.bgCol = bgCol
     }
+    
+    static func == (lhs: RequestItem, rhs: RequestItem) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
 }
 
 func getRequestItem(DBRef: DatabaseReference, forID id: String, onComplete: @escaping (RequestItem?) -> ()) {

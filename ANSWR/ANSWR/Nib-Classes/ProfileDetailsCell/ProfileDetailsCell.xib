@@ -30,7 +30,7 @@
                                 <color key="textColor" name="Text"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="254" text="Email" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i4o-o8-QXl">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="254" text="Contact No" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i4o-o8-QXl" userLabel="Contact No">
                                 <rect key="frame" x="16" y="93" width="301" height="25"/>
                                 <fontDescription key="fontDescription" name="AvenirNext-Bold" family="Avenir Next" pointSize="18"/>
                                 <color key="textColor" name="Text Light"/>
@@ -87,8 +87,8 @@
                 </constraints>
             </tableViewCellContentView>
             <connections>
+                <outlet property="contactNoLabel" destination="thl-Mk-Oyh" id="4yt-wL-QUR"/>
                 <outlet property="detailContainer" destination="MBf-cr-pvp" id="IvL-HJ-zWb"/>
-                <outlet property="emailLabel" destination="thl-Mk-Oyh" id="dTU-fs-1pI"/>
                 <outlet property="nameLabel" destination="LhF-SP-TsF" id="fpt-Ff-SlZ"/>
                 <outlet property="zoneLabel" destination="wON-dh-iYO" id="HE7-Rh-tn2"/>
             </connections>

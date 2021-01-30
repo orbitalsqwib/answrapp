@@ -8,7 +8,8 @@
 import Foundation
 import FirebaseDatabase
 
-struct Request: Codable {
+struct Request: Codable, Equatable {
+    
     var id: String?
     var dateCreated: Date?
     var senderID: String
@@ -16,6 +17,8 @@ struct Request: Codable {
     var delSlotStart: Date?
     var items: Array<RequestItem>
     var isNew: Bool?
+    var elderlyName: String?
+    var elderlyAddressString: String?
     
     init(id: String?, dateCreated: Date?, senderID: String, status: String?, delSlotStart: Date?, items: Array<RequestItem>) {
         self.id = id
@@ -43,73 +46,73 @@ struct Request: Codable {
         }
         return nil
     }
+    
+    static func == (lhs: Request, rhs: Request) -> Bool {
+        let idCheck = lhs.id == rhs.id
+        let statusCheck = lhs.status == rhs.status
+        let delSlotCheck = lhs.status == rhs.status
+        
+        var itemsCheck = true
+        for item in lhs.items {
+            if !rhs.items.contains(item) {
+                itemsCheck = false
+                break
+            }
+        }
+        
+        let nameCheck = lhs.elderlyName == rhs.elderlyName
+        let addrCheck = lhs.elderlyAddressString == rhs.elderlyAddressString
+        return idCheck && statusCheck && delSlotCheck && nameCheck && addrCheck && itemsCheck
+    }
 }
 
-//TODO: Change function to update request status
-//func postRequest(DBRef: DatabaseReference, req: Request, onComplete: @escaping (Bool) -> ()) {
-//    let authHandler = FirAuthHandler.self
-//    guard let uid = authHandler.firAuth.currentUser?.uid else {
-//        return
-//    }
-//
-//    var items = [String : Int]()
-//    for itm in req.items {
-//        items[itm.id] = itm.qty
-//    }
-//
-//    let now = Calendar.current.dateComponents(in: .current, from: Date())
-//    let tmr = DateComponents(year: now.year, month: now.month, day: now.day, hour: 8)
-//    let defaultSlot = Calendar.current.date(from: tmr)!.timeIntervalSince1970
-//    let delSlotStart = Int64((req.delSlotStart?.timeIntervalSince1970 ?? defaultSlot * 1000).rounded()) * 1000
-//
-//    let reqDict = ["dateCreated": Date().timeIntervalSince1970, "content": items, "delSlotStart" : delSlotStart, "senderID" : req.senderID, "status" : req.status ?? ""] as [String : Any]
-//
-//    UserDetailsHandler.retrieveSubzone(DBRef: DBRef) { (zoneid, success) in
-//        if success {
-//            let reqID = DBRef.child("requests/\(zoneid)").childByAutoId()
-//            reqID.setValue(reqDict) { (err, _) in
-//                guard err == nil else {
-//                    onComplete(false)
-//                    return
-//                }
-//
-//                DBRef.child("userRequests/\(uid)/\(zoneid)").childByAutoId().setValue(reqID.key) { (err2, _) in
-//                    guard err2 == nil else {
-//                        onComplete(false)
-//                        return
-//                    }
-//
-//                    updateCounters(for: req.items, with: DBRef, in: zoneid)
-//                    onComplete(true)
-//                }
-//            }
-//        } else {
-//            onComplete(false)
-//        }
-//    }
-//}
+func markRequestAsComplete(for request: Request, in zoneID: String, onComplete: @escaping ()->()) {
+    let DBRef = Database.database().reference()
+    let uid = FirAuthHandler.firAuth.currentUser!.uid
+    
+    updateCounters(for: request.items, with: DBRef, in: zoneID)
+    DBRef.child("userRequests/\(request.senderID)/\(zoneID)/").observeSingleEvent(of: .value) { (snapshot) in
+        for child in snapshot.children {
+            let childSnap = child as! DataSnapshot
+            let key = childSnap.key
+            if (snapshot.childSnapshot(forPath: key).value as! String) == request.id {
+                DBRef.child("userRequests/\(request.senderID)/\(zoneID)/\(key)").setValue(nil)
+                break
+            }
+        }
+    }
+    DBRef.child("volunteer/\(uid)/CompletedRequests").runTransactionBlock { (data) -> TransactionResult in
+        var reqCompletedCounter = data.value as? Int ?? 0
+        reqCompletedCounter += 1
+        
+        data.value = reqCompletedCounter
+        return TransactionResult.success(withValue: data)
+    }
+    DBRef.child("requests/\(zoneID)/\(request.id!)").setValue(nil) { (err, ref) in
+        onComplete()
+    }
+}
 
 func updateCounters(for items: [RequestItem], with DBRef: DatabaseReference, in zoneid: String) {
     for item in items {
-        DBRef.child("items/\(item.id)/stock").runTransactionBlock { (data) -> TransactionResult in
-            var stock = data.value as? Int ?? 0
-            stock -= item.qty
-            data.value = stock
-            return TransactionResult.success(withValue: data)
-        }
-        
         DBRef.child("requestCounter/\(zoneid)/\(item.id)").runTransactionBlock { (data) -> TransactionResult in
             var itemCounter = data.value as? Int ?? 0
-            itemCounter += item.qty
+            itemCounter -= item.qty
             
             data.value = itemCounter
+            if itemCounter <= 0 {
+                data.value = nil
+            }
             return TransactionResult.success(withValue: data)
         }
         
         DBRef.child("items/\(item.id)/requested").runTransactionBlock { (data) -> TransactionResult in
             var requestedCounter = data.value as? Int ?? 0
-            requestedCounter += item.qty
+            requestedCounter -= item.qty
             data.value = requestedCounter
+            if requestedCounter <= 0 {
+                data.value = nil
+            }
             return TransactionResult.success(withValue: data)
         }
     }
@@ -145,7 +148,14 @@ func getRequest(DBRef: DatabaseReference, forZoneID zoneID: String, forID id: St
         
         let contentSnap = snapshot.childSnapshot(forPath: "content")
         getAllItems(DBRef: DBRef, forContentSnapshot: contentSnap) { (items) in
-            onComplete(Request(id: id, dateCreated: dateCreated, senderID: senderID, status: status, delSlotStart: delSlotStartDate, items: items))
+            
+            UserDetailsHandler.retrieveElderlyDetails(DBRef: DBRef, for: senderID) { (details) in
+                var req = Request(id: id, dateCreated: dateCreated, senderID: senderID, status: status, delSlotStart: delSlotStartDate, items: items)
+                req.elderlyName = details?.name
+                req.elderlyAddressString = details?.address
+                
+                onComplete(req)
+            }
         }
     }
 }

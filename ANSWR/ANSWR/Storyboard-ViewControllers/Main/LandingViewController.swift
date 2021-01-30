@@ -8,12 +8,25 @@
 import UIKit
 import FirebaseDatabase
 
-class LandingViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class LandingViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, TasksheetProtocol {
 
+    @IBOutlet weak var noRequestLabel: UILabel!
+    @IBOutlet weak var resultCard: UIView!
+    @IBOutlet weak var resultImageView: UIImageView!
+    @IBOutlet weak var resultFlavourText: UILabel!
+    @IBOutlet weak var resultActivityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var requestTableView: UITableView!
     let refreshControl = UIRefreshControl()
     
-    var zoneRequests = Array<ZoneRequests>()
+    var zoneRequests = Array<ZoneRequests>() {
+        didSet {
+            if zoneRequests.count > 0 {
+                noRequestLabel.isHidden = true
+            } else {
+                noRequestLabel.isHidden = false
+            }
+        }
+    }
     
     let DBRef = Database.database().reference()
     let authHandler = FirAuthHandler.self
@@ -24,13 +37,13 @@ class LandingViewController: UIViewController, UITableViewDelegate, UITableViewD
         // Do any additional setup after loading the view.
         requestTableView.delegate = self
         requestTableView.dataSource = self
+        requestTableView.addSubview(noRequestLabel)
+        requestTableView.sendSubviewToBack(noRequestLabel)
 
         requestTableView.refreshControl = refreshControl
         refreshControl.addTarget(self, action: #selector(objcRefreshData(_:)), for: .valueChanged)
         
-        // TODO: Make new RequestSummaryCell or import from previous Kasei app
-//        NewItemCell.register(for: requestTableView)
-//        RequestSummaryCell.register(for: requestTableView)
+        RequestDetailCell.register(for: requestTableView)
 
         // Preload saved requests from core data
         zoneRequests = CDHandler.loadAllZoneRequests()
@@ -45,74 +58,50 @@ class LandingViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     func refreshData() {
-        
+        fetchAllZoneRequests { (zonerequests) in
+            let newZoneReqs = zonerequests
+            
+            // update and reload core data
+            CDHandler.updateSavedRequests(newZoneRequests: newZoneReqs)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                self.zoneRequests = CDHandler.loadAllZoneRequests()
+                self.requestTableView.reloadData()
+                if (self.refreshControl.isRefreshing) {
+                    self.refreshControl.endRefreshing()
+                }
+            }
+        }
     }
     
-    func fetchAllZoneRequests() {
-        
+    func fetchAllZoneRequests(onComplete: @escaping ([ZoneRequests])->()) {
+        UserDetailsHandler.retrieveZones { (zones, uid) in
+            guard zones != nil && uid != nil else {
+                return
+            }
+            
+            var zoneRequestsArr = [ZoneRequests]()
+            var counter = zones!.count
+            for zone in zones! {
+                getZoneRequests(DBRef: self.DBRef, for: zone) { (zonereq) in
+                    if let zr = zonereq {
+                        zoneRequestsArr.append(zr);
+                    }
+                    counter -= 1
+                    if counter == 0 {
+                        onComplete(zoneRequestsArr)
+                    }
+                }
+            }
+        }
     }
-    
-//    func refreshData() {
-//
-//        fetchAllUserRequests { (requests) in
-//            if requests != nil {
-//                // update saved requests
-//                //CDHandler.updateSavedRequests(newRequests: requests!)
-//
-//                // reload saved requests and piggyback on CDHandler to sort by dateCreated
-//                //self.userRequests = CDHandler.loadAllRequests()
-//            }
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-//                self.requestTableView.reloadData()
-//                if (self.refreshControl.isRefreshing) {
-//                    self.refreshControl.endRefreshing()
-//                }
-//            }
-//        }
-//    }
-//
-//    func fetchAllUserRequests(onComplete: @escaping (Array<Request>?) -> ()) {
-//        // fetch data from firebase
-//        guard let uid = authHandler.firAuth.currentUser?.uid else {
-//            print("No UID!")
-//            return
-//        }
-//
-//        DBRef.child("userRequests/\(uid)").observeSingleEvent(of: .value) { (snapshot) in
-//            var requests = [Request]()
-//
-//            guard snapshot.exists() else {
-//                onComplete(requests)
-//                return
-//            }
-//
-//            var zoneCount = snapshot.childrenCount
-//            for zoneChild in snapshot.children {
-//                let zoneChildSnap = zoneChild as! DataSnapshot
-//                let zoneID = zoneChildSnap.key
-//                var requestCount = zoneChildSnap.childrenCount
-//
-//                for requestsChildSnap in zoneChildSnap.children {
-//                    let requestIDSnap = requestsChildSnap as! DataSnapshot
-//                    let id = requestIDSnap.value as! String
-//
-//                    getRequest(DBRef: self.DBRef, forZoneID: zoneID, forID: id) { (r) in
-//                        if r != nil { requests.append(r!) }
-//                        requestCount -= 1
-//                        if requestCount == 0 {
-//                            zoneCount -= 1
-//                        }
-//                        if zoneCount == 0 && requestCount == 0 {
-//                            onComplete(requests)
-//                        }
-//                    
-//                }
-//            }
-//        }
-//    }
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return zoneRequests.count
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return zoneRequests[section].zoneid
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -121,43 +110,91 @@ class LandingViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         //TODO: always load request summary cell
-        return UITableViewCell()
+        let zoneid = zoneRequests[indexPath.section].zoneid
+        let request = zoneRequests[indexPath.section].requests[indexPath.row]
+        if let cell = RequestDetailCell.buildInstance(for: requestTableView, request: request) {
+            cell.zoneid = zoneid
+            cell.delegate = self
+            return cell
+        } else {
+            return UITableViewCell()
+        }
+    }
+    
+    // method imported from https://stackoverflow.com/questions/39268477/how-to-calculate-textview-height-base-on-text
+    // created by https://stackoverflow.com/users/5901353/d-greg
+    func calculatedHeight(for text: String, width: CGFloat) -> CGFloat {
+        let label = UILabel(frame: CGRect(x: 0, y: 0, width: width,
+                                          height: .greatestFiniteMagnitude))
+        label.font = UIFont(name: "Avenir Next Medium", size: 16)
+        label.numberOfLines = 0
+        label.text = text
+        label.sizeToFit()
+        return label.frame.height
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let request = zoneRequests[indexPath.section].requests[indexPath.row]
+        let width = self.view.frame.width - 80
+        let addressHeight = calculatedHeight(for: request.elderlyAddressString!, width: width)
+        let layoutMarginPadding: CGFloat = 22
+        let finalHeight =  223 + addressHeight + CGFloat((request.items.count * 30)) + layoutMarginPadding
+        return finalHeight
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        view.tintColor = UIColor.systemBackground
     }
     
     @IBAction func clickedProfileBtn(_ sender: Any) {
         present(ProfileViewController(nibName: "CardDetailVC", bundle: nil), animated: true, completion: nil)
     }
     
-//    func presentRequestStoryboard() {
-//        let vc = UIStoryboard(name: "Request", bundle: nil).instantiateInitialViewController()
-//        guard let loginVC = vc else {
-//            return
-//        }
-//        loginVC.modalPresentationStyle = .fullScreen
-//        self.present(loginVC, animated: true, completion: nil)
-//    }
+    func reloadTasksheet() {
+        refreshData()
+    }
     
-//    func presentDetailView(for cell: RequestSummaryCell) {
-//        if let indexPath = requestTableView.indexPath(for: cell) {
-//            let detailVC = RequestDetailViewController(nibName: "CardDetailVC", bundle: nil)
-//            detailVC.request = userRequests[indexPath.row]
-//            present(detailVC, animated: true, completion: nil)
-//        } else {
-//            print("There was an error!")
-//        }
-//    }
+    func showResultCard() {
+        resultCard.isHidden = false
+        resultActivityIndicator.startAnimating()
+        resultFlavourText.text = "Updating..."
+    }
     
-//    func newItem() {
-//        presentRequestStoryboard()
-//    }
+    func showResult(success: Bool) {
+        resultActivityIndicator.stopAnimating()
+        resultImageView.isHidden = false
+        if success {
+            resultImageView.image = UIImage(systemName: "checkmark.circle.fill")
+            resultImageView.tintColor = UIColor(named: "Accent Static")
+            resultFlavourText.text = "Success"
+        } else {
+            resultImageView.image = UIImage(systemName: "xmark.circle.fill")
+            resultImageView.tintColor = UIColor(named: "Destructive")
+            resultFlavourText.text = "Something went wrong!"
+        }
+    }
     
-//    func presentMoreDetails(cell: RequestSummaryCell) {
-//        presentDetailView(for: cell)
-//    }
+    func hideResult() {
+        resultImageView.isHidden = true
+        resultCard.isHidden = true
+    }
     
-//    @IBAction func unwindToLandingVC(_ segue: UIStoryboardSegue) {
-//        refreshData()
-//    }
+    func completeRequest(req: Request, zoneid: String) {
+        showResultCard()
+        markRequestAsComplete(for: req, in: zoneid) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.showResult(success: true)
+                self.reloadTasksheet()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    self.hideResult()
+                }
+            }
+        }
+    }
+    
+    func presentAlert(alert: UIAlertController) {
+        self.present(alert, animated: true, completion: nil)
+    }
 
     /*
     // MARK: - Navigation
@@ -169,4 +206,10 @@ class LandingViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     */
 
+}
+
+protocol TasksheetProtocol {
+    func reloadTasksheet()
+    func completeRequest(req: Request, zoneid: String)
+    func presentAlert(alert: UIAlertController)
 }

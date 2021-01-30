@@ -10,7 +10,7 @@ class ProfileDetailsCell: ElevatedTableViewCell {
     
     @IBOutlet weak var detailContainer: UIView!
     @IBOutlet weak var nameLabel: UILabel!
-    @IBOutlet weak var emailLabel: UILabel!
+    @IBOutlet weak var contactNoLabel: UILabel!
     @IBOutlet weak var zoneLabel: UILabel!
     
     override func awakeFromNib() {

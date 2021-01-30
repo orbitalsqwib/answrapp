@@ -59,7 +59,7 @@ class ProfileViewController: CardDetailVC, UITableViewDelegate, UITableViewDataS
             if let cell = ProfileDetailsCell.buildInstance(for: cardTableView) {
                 let defaultText = NSLocalizedString("Loading...", comment: "")
                 cell.nameLabel.text = profileDetails?.name ?? defaultText
-                cell.emailLabel.text = profileDetails?.email ?? defaultText
+                cell.contactNoLabel.text = profileDetails?.contactNo ?? defaultText
                 cell.zoneLabel.text = profileDetails?.zones.joined(separator: ", ") ?? defaultText
                 
                 return cell
